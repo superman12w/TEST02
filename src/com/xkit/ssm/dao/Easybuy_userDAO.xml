@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xkit.ssm.dao.Easybuy_userDAO">
+
+	<delete id="delete" parameterType="int">
+		delete from Easybuy_user where id=#{value}
+	</delete>
+
+	<select id="selectUserByPage" resultType="Easybuy_user">
+		SELECT * FROM `easybuy_user` 
+		<where>
+			<if test="user.loginName!=null and user.loginName!=''">
+				and loginName like '%${user.loginName}%'
+			</if>
+			<if test="user.userName!=null and user.userName!=''">
+				and userName like '%${user.userName}%'
+			</if>
+			<if test="user.sex!=null">
+				and sex=#{user.sex}
+			</if>
+			<if test="user.mobile!=null and user.mobile!=''">
+				and mobile like '%${user.mobile}%'
+			</if>
+		</where>
+		limit  #{pageIndex},#{pageSize}
+	</select>
+<select id="count" resultType="int" parameterType="Easybuy_user">
+		SELECT count(*) FROM `easybuy_user` 
+		<where>
+			<if test="loginName!=null and loginName!=''">
+				and loginName like '%${loginName}%'
+			</if>
+			<if test="userName!=null and userName!=''">
+				and userName like '%${userName}%'
+			</if>
+			<if test="sex!=null">
+				and sex=#{sex}
+			</if>
+			<if test="mobile!=null and mobile!=''">
+				and mobile like '%${mobile}%'
+			</if>
+		</where>
+	</select>
+
+
+	 <select id="get"  resultType="Easybuy_user">
+	 	 select * from Easybuy_user where loginName = #{zh} and password=#{mm}
+	 </select>
+
+	<insert id="insert" parameterType="Easybuy_user">
+		insert into Easybuy_user(`loginName`,`userName`,`password`,`sex`,`identityCode`,`email`,`mobile`,`type`) 
+		values(#{loginName},#{userName},#{password},#{sex},#{identityCode},#{email},#{mobile},#{type});
+	</insert>
+
+	<select id="getCount" parameterType="String" resultType="int">
+		select count(*) from Easybuy_user where loginName=#{value}
+	</select>
+	<select id="selectUser" resultType="Easybuy_user">
+		select * from Easybuy_user 
+	</select>
+</mapper>

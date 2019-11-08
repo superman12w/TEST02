@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xkit.ssm.dao.Easybuy_user_addressDAO">
+	<insert id="add" parameterType="Easybuy_user_address">
+		insert into Easybuy_user_address( `userId`,`address`,`createTime`,`isDefault`,`remark`) 
+		values(#{userId},#{address},#{createTime},#{isDefault},#{remark});
+	</insert>
+	<select id="queryAddress" resultType="Easybuy_user_address">
+		select * from Easybuy_user_address;
+	</select>
+</mapper>

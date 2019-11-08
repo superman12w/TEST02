@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:context="http://www.springframework.org/schema/context" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+	http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context-3.2.xsd
+    http://www.springframework.org/schema/mvc
+    http://www.springframework.org/schema/mvc/spring-mvc.xsd
+    http://www.springframework.org/schema/tx
+    http://www.springframework.org/schema/tx/spring-tx-3.2.xsd">
+	<bean name="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+		<property name="url" value="jdbc:mysql://localhost:3306/easybuy"></property>
+		<property name="username" value="root"></property>
+		<property name="password" value=""></property>
+	</bean>
+	<!-- 创建spring和mybatis整合后用的工厂对象 -->
+	<bean id="fact" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- 指定该工厂需要的数据源 -->
+		<property name="dataSource" ref="dataSource"></property>
+		<!-- 指定mybatis框架的主配置文件路径，mybatis框架由spring框架来启动 -->
+		<property name="configLocation" value="classpath:mybatis-config.xml"></property>
+	</bean>
+	<!-- mapper扫描器，来创建dao接口的实现类 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!-- 扫描的包 -->
+		<property name="basePackage" value="com.xkit.ssm.dao"></property>
+		<!-- 需要一个session工厂对象的名字（其实获得的session工厂对象给了创建出来的
+		dao实现类来做数据库操作） -->
+		<property name="sqlSessionFactoryBeanName" value="fact"></property>
+	</bean>
+	<context:component-scan
+		base-package="com.xkit.ssm.service.impl,com.xkit.ssm.handler"></context:component-scan>
+	<!-- 事务bean -->
+	<bean id="trans"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	<!-- 事务级别 -->
+	<tx:advice id="txAdvice" transaction-manager="trans">
+		<tx:attributes>
+			<tx:method name="add*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+			<tx:method name="delete*" propagation="REQUIRED" />
+			<tx:method name="*" read-only="true" propagation="SUPPORTS" />
+		</tx:attributes>
+	</tx:advice>
+	<!-- 将切入点和事务组合 -->
+	<aop:config>
+		<aop:pointcut expression="execution(* com.xkit.ssm.service.impl.*.*(..))"
+			id="pc" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="pc" />
+	</aop:config>
+
+<!-- 注解方式的适配器 映射器-->
+	 <!-- 消息转换器 -->
+	 
+	<mvc:annotation-driven conversion-service="myConverters">
+	<mvc:message-converters>
+		<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+			<property name="supportedMediaTypes">
+				<list>
+					<value>application/json;charset=utf-8</value>
+					<value>text/plain;charset=utf-8</value>
+				</list>
+			</property>
+		</bean>
+		<bean class="com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter">
+			<property name="supportedMediaTypes">
+				<list>
+					<value>application/json;charset=utf-8</value>
+					<value>text/plain;charset=utf-8</value>
+				</list>
+			</property>
+			<property name="features">
+				<list><value>WriteDateUseDateFormat</value></list>
+			</property>
+		</bean>
+	</mvc:message-converters>
+	</mvc:annotation-driven>
+<!-- 视图解析器 -->
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+			<!-- 设置好前缀和后缀后，跳转的页面路径中就不用写前缀和后缀了 -->
+			<property name="prefix" value="/"></property>
+			<property name="suffix" value=".jsp"></property>
+	</bean>
+	<!-- 配置全局异常处理器 -->
+	<bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+		<property name="exceptionMappings">
+			<props>
+				<prop key="java.lang.Exception">WEB-INF/pages/error</prop>
+			</props>
+		</property>
+	</bean>
+	<!-- 文件上传解析器 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+	</bean>
+	<mvc:resources location="/scripts/" mapping="/scripts/**" />
+	<mvc:resources location="/css/" mapping="/css/**" />
+	<mvc:resources location="/images/" mapping="/images/**" />
+	<mvc:resources location="/js/" mapping="/js/**" />
+	<mvc:resources location="/photo/" mapping="/photo/**" />
+	<!-- 将我们的自定义类型转化器放入springmvc统一的类型转化器中 -->
+	<bean id="myConverters" class="org.springframework.context.support.ConversionServiceFactoryBean">
+		<property name="converters">
+			<list>
+				<bean class="com.xkit.ssm.convert.DateConvert"></bean>
+			</list>
+		</property>
+	</bean>
+</beans>
